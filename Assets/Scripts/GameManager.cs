@@ -7,12 +7,14 @@ public class GameManager : MonoBehaviour
 {
     public TalkManager talkManager;
     public QuestManager questManager;
-    public Text talkText;
+    public TypeEffect talk;
     public Image portraitImg;
+    public Animator portraitAnim;
     public GameObject scanObject;
-    public GameObject talkPanel;
+    public Animator talkPanel;
     public bool isAction;
     public int talkIndex;
+    public Sprite prevPortrait;
 
     void Start()
     {
@@ -24,13 +26,25 @@ public class GameManager : MonoBehaviour
         scanObject = scanObj;
         ObjtData objData = scanObject.GetComponent<ObjtData>();
         Talk(objData.id, objData.isNpc);
-        talkPanel.SetActive(isAction);
+
+        talkPanel.SetBool("isShow", isAction);
     }
 
     void Talk(int id, bool isNpc)
     {
-        int questTalkIndex = questManager.GetQuestTalkIndex(id);
-        string talkData = talkManager.GetTalk(id +questTalkIndex , talkIndex);
+        int questTalkIndex = 0;
+        string talkData = "";
+
+        if (talk.isAnim)
+        {
+            talk.SetMsg("");
+            return;
+        }
+        else
+        {
+            questTalkIndex = questManager.GetQuestTalkIndex(id);
+            talkData = talkManager.GetTalk(id + questTalkIndex, talkIndex);
+        }
 
         if (talkData == null)
         {
@@ -42,15 +56,20 @@ public class GameManager : MonoBehaviour
 
         if (isNpc)
         {
-            talkText.text = talkData.Split(':')[0];
+            talk.SetMsg(talkData.Split(':')[0]);
 
             portraitImg.sprite = talkManager.GetPortrait(id, int.Parse(talkData.Split(':')[1]));
             portraitImg.color = new Color(1, 1, 1, 1);
+            if(prevPortrait != portraitImg.sprite)
+            {
+                portraitAnim.SetTrigger("doEffect");
+                prevPortrait= portraitImg.sprite;
+            }
         }
 
         else
         {
-            talkText.text = talkData;
+            talk.SetMsg(talkData);
 
             portraitImg.color = new Color(1, 1, 1, 0);
         }
